@@ -1,0 +1,74 @@
+*{
+    margin: 0;
+    padding: 0;
+    font: 14px Verdana;
+}
+
+#arena{
+    max-width: 500px;
+    margin: 10px auto;
+}
+
+.quizHeader{
+    background-color: #e90000;
+    border-top-left-radius: 5px; 
+    border-top-right-radius: 5px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 10px;
+    text-shadow: 1px 1px 3px #000;
+}
+.quizListQuestions {
+    list-style: none;
+    border: 1px solid #e90000;
+}
+.quizListQuestions li{
+    background-color: #3C67EE;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 15px 10px;
+    text-align: center;
+    text-shadow: 1px 1px 3px #000;
+    transition: all .5s;
+}
+.quizListQuestions li+li{
+    border-top: 1px solid #0062B8;
+}
+
+.quizListQuestions li.quizSelected {
+    background-color: #fff;
+    color: #0062B8;
+    text-shadow: none;
+}
+.quizListQuestions li.quizRight {
+    background-color: #42CF75;
+}
+.quizListQuestions li.quizWrong {
+    background-color: #f44;
+}
+.quizFooter{
+    border: 1px solid #e90000;
+    border-top: none;
+    border-bottom-left-radius: 5px; 
+    border-bottom-right-radius: 5px;
+    padding: 10px;
+    text-align: right;
+}
+
+.quizFooter button{
+    background-color: #e90000;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 5px;
+}
+
+.quizFooter p{
+    color: #000AFF;
+    float: left;
+    font-size: 16px
+}
