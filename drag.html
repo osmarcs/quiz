@@ -29,12 +29,15 @@
     function drag(elementToDrag, evt) {
 
             var scroll = getScrollOffsets();
+            console.log(evt.clientX);
+            console.log(scroll.x);
             var startX = evt.clientX + scroll.x;
             var startY = evt.clientY + scroll.y;
 
             var origX = elementToDrag.offsetLeft;
             var origY = elementToDrag.offsetTop;
 
+            // Calculate position mouse in element
             var deltaX = startX - origX;
             var deltaY = startY - origY;
 
@@ -82,7 +85,7 @@
             else e.cancelBubble = true;
         }
     }
-    
+
     var elementDrag = document.getElementById('itsDrag');
 
     elementDrag.addEventListener('mousedown', 
