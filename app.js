@@ -1,3 +1,298 @@
+Quiz = (function(){
+
+    function Quiz(stage, questions) {
+
+        if(typeof stage === 'string')
+            stage = document.getElementById(stage);
+
+        if(questions.length === 0) {
+            console.log('Sem questoes');
+            return false;
+        }
+
+        this.stage = stage;
+        this.questions = questions;
+        this.init();
+    }
+
+    Quiz.prototype.init = function() {
+
+        var header, footer, container;
+
+        this.stage.innerHTML = '';
+
+        header = document.createElement('div');
+        header.className = 'quizHeader';
+
+        footer = document.createElement('div');
+        footer.className = 'quizFooter'; 
+
+        container = document.createElement('div');
+        container.className = 'quizContainer'; 
+
+        this.stage.appendChild(header);
+        this.stage.appendChild(container);
+        this.stage.appendChild(footer);
+
+        this.header    = header;
+        this.footer    = footer;
+        this.container = container;
+        this.answers   = [];
+        this.actual    = 0;
+        this.showSplash();
+    };
+
+    Quiz.prototype.showSplash = function(){
+
+        var htmlFooter, htmlContainer, button;
+        var self = this;
+
+        this.header.innerHTML = "<h2>Bem Vindo ao Super Quiz NFL!</h2>";
+        
+        htmlContainer = '<p class="quizFirstPSplash"> Teste aqui seus conhecimento sobre futebol americano.</p>';
+        htmlContainer += '<p class="quizSecondPSplash"> Jogue, apreenda e se divirta com esse super quiz.</p>';
+
+        this.container.innerHTML = htmlContainer;
+
+        this.footer.innerHTML = '<button class="quizSplashBtn">Começar Agora!</button>';
+        button = this.footer.getElementsByTagName('button')[0];
+        Utils.addEvent(button, 'click', function(){ self.showAsk(); });
+
+    };
+
+    Quiz.prototype.showAsk = function () {
+        
+        var actual, question, choices, 
+            actualChoice, ask, displayChoices, 
+            alternatives, className, callSelectAlternative,
+            self = this;
+
+        actual   = this.actual;
+        
+        question = this.questions[actual];
+        choices  = question.choices;
+        ask      = question.question;
+        
+        actualChoice = this.answers[actual];
+
+        displayChoices = '<ul>';
+        for(i = 0, len = choices.length; i < len; i++){
+            className = i === actualChoice ? 'quizSelected' : '';
+            
+            displayChoices += '<li class="' + className +'"';
+            displayChoices += 'data-index="' + i + '">';
+            displayChoices += choices[i] + '</li>';
+        }
+
+        displayChoices += '</ul>';
+
+        this.setHeader( actual+1, ask);
+        this.container.innerHTML = displayChoices;
+
+        alternatives = this.container.getElementsByTagName('li');
+        
+        callSelectAlternative = function(e){
+            self.onClickSelectAlternative(e);
+        };
+
+        for(i = 0, len = alternatives.length;  i < len; i++){
+            Utils.addEvent(alternatives[i], 'click', callSelectAlternative );
+        }
+
+        this.setAskFooter();
+    };
+
+    Quiz.prototype.onClickSelectAlternative = function(e) {
+        var target, index;
+
+        target = Utils.getTarget(e);
+        index  = Utils.getData(target, 'index');
+        index  = parseInt(index, 10);
+
+        this.setAnswer(index);
+    };
+
+    Quiz.prototype.setAnswer = function(answer) {
+
+        var actualAnswer, formChoices;
+
+        actualAnswer = this.answers[this.actual];
+        formChoices  = this.container.getElementsByTagName('li');
+
+        if(answer === undefined || answer === null) {
+            return;
+        }
+
+        if(actualAnswer !== undefined && actualAnswer !== null) {
+            formChoices[actualAnswer].className = '';
+        }
+        
+        if ( formChoices[answer]) {
+            formChoices[answer].className = 'quizSelected';
+            this.answers[this.actual] = answer;
+        }
+
+    };
+
+    Quiz.prototype.setHeader = function(pos, text){
+        this.header.innerHTML    = '<h2>' + (pos ? pos + '. ' : '') + text  + '</h2>';
+    };    
+
+    Quiz.prototype.setAskFooter  = function(pos, text){
+        var buttons, nextBtn, callDirection,
+             prevBtn = '', self = this;
+
+        nextBtn = '<button class="quizNextBtn" data-direction="next">';
+        nextBtn += (this.isTheLast()) ? 'Finalizar' : 'Próxima';
+
+        if( !this.isTheFirst() ){
+            prevBtn = '<button class="quizPrevBtn" data-direction="back">Voltar!';
+            prevBtn += '</button>';
+        }
+
+        this.footer.innerHTML = prevBtn + nextBtn;
+
+        buttons = this.footer.getElementsByTagName('button');
+        
+        // Revison
+        callDirection = function() {
+            var direction = Utils.getData(this, 'direction');
+            self.onClickDirectionBtn(direction);
+        };
+
+        for(i = 0, len = buttons.length; i < len; i++) {
+            Utils.addEvent( buttons[i], 'click', callDirection);
+        }
+    };
+
+    Quiz.prototype.onClickDirectionBtn = function(direction){
+        
+        var actualAnswer = this.answers[this.actual];
+
+        if(direction === 'next') {
+            if(actualAnswer === undefined || actualAnswer === null) {
+                return false;     
+            }
+
+            if( this.isTheLast()) {
+                this.endGame();
+                return;
+            }
+
+            this.actual++;
+        } else {
+            this.actual--;
+        }
+
+        this.showAsk();
+    };
+
+    Quiz.prototype.endGame = function() {
+        var questions, answers, numQuestions,
+            containerHtml, button, 
+            self = this, rigthAnswers = 0;
+
+        numQuestions = this.questions.length;
+        questions    = this.questions;
+        answers      = this.answers;
+        
+        for(i = 0; i < numQuestions; i++ ) {
+            rigthAnswers += questions[i].answer === answers[i] ? 1 : 0;
+        }
+
+        this.setHeader(0, 'Fim de Jogo!');
+
+        if( rigthAnswers >= (numQuestions/2) ) {
+            containerHtml = '<p class="quizEndWin">';
+            containerHtml += 'Parabéns você é o grande ganhador da noite!';
+            containerHtml += '</p>';
+        } else {
+            containerHtml = '<p class="quizEndLose">';
+            containerHtml += 'Oh não, você perdeu, que tal tentar de novo?';
+            containerHtml += '</p>';
+        }
+
+        containerHtml += '<p class="quizScore">Score: ';
+        containerHtml += rigthAnswers + '/' + numQuestions + '</p>'; 
+
+        this.container.innerHTML = containerHtml;
+
+        this.footer.innerHTML = '<button class="quizPlayAgain">Jogar Novamente !</button>';
+
+        button  = this.footer.getElementsByTagName('button')[0];
+        Utils.addEvent(button, 'click', function(){ self.init(); });
+    };
+
+    Quiz.prototype.isTheLast = function(){
+        if( this.actual === (this.questions.length-1))
+            return true;
+    };    
+    Quiz.prototype.isTheFirst = function(){
+        if( this.actual === 0)
+            return true;
+    };
+
+    var Utils = {};
+    Utils.removeClass = function(c, e) {
+        if (c.length === 0 || c.indexOf(" ") != -1) return;
+        var pattern = new RegExp("\\b" + c + "\\b\\s*", "g");
+        e.className = e.className.replace(pattern, "");
+    };    
+
+    Utils.addEvent = function(elt, evt,  f) {
+
+        if( elt.addEventListener)
+            elt.addEventListener(evt, f, false);
+        else 
+            elt.attachEvent('on'+evt, f);
+
+    };    
+   
+    Utils.removeEvent = function(elt, evt,  f) {
+
+        if( elt.removeEventListener)
+            elt.removeEventListener(evt, f, false);
+        else 
+            elt.detachEvent('on'+evt, f);
+
+    };
+
+    Utils.containsClass = function(c, e) {
+        if (c.length === 0 || c.indexOf(" ") != -1) return;
+        var classes = e.className;
+        if (!classes) return false;
+        if (classes === c) return true;
+        return classes.search("\\b" + c + "\\b") != -1;
+    };
+
+    Utils.addClass = function(c, e) {
+        if (this.containsClass(c, e)) return;
+        var classes = e.className;
+        if (classes && classes[classes.length-1] != " ")
+            c = " " + c;
+
+        e.className += c;
+    };
+
+    Utils.getData = function(elt, name) {
+
+        if(elt.dataset)
+            return elt.dataset[name];
+        else 
+            return elt.getAttribute('data-'+name);
+    };
+
+    Utils.getTarget = function(evt) {
+        return evt ? evt.target : window.event.srcElement;
+    };
+    
+    Utils.clear = function(elt) {
+        for(;elt.firstChild;) { elt.removeChild(elt.firstChild); }
+    };
+
+    return Quiz;
+
+}());
 var questions = [
     {
         question: "Como é chamada a jogada onde o defensor derruba o ataquante em sua própria endzone?",
@@ -16,194 +311,6 @@ var questions = [
     }
 ];
 
-function Quiz(elt, questions){
-
-    if( typeof elt === 'string') elt = document.getElementById(elt);
-    if(elt.length === 0) return false;
-
-    this.container = elt;
-    this.questions = questions;
-    this.init();
-}
-
-Quiz.prototype.init = function(){
-
-    Utils.clear(this.container);
-    this.currentQuestion = 0;
-    this.myChoice = null;
-    this.rightChoices = (function(){
-        var oks = 0;
-        return {
-            set: function(){ oks++;},
-            get: function(){ return oks;}
-        };
-    }());
-
-    this.header = document.createElement('div');
-    Utils.addClass('quizHeader', this.header);
-    this.container.appendChild(this.header);    
-
-    this.listQuestions = document.createElement('ul');
-    Utils.addClass('quizListQuestions', this.listQuestions);
-    
-    this.container.appendChild(this.listQuestions);
-
-    this.footer = document.createElement('div');
-    Utils.addClass('quizFooter', this.footer);
-    this.container.appendChild(this.footer);
-
-    this.showQuestion();
-
-};
-
-Quiz.prototype.setHeader = function(text){
-    Utils.clear(this.header);
-    this.header.appendChild( document.createTextNode(text) ); 
-};
-
-Quiz.prototype.setFooter = function(){
-    
-    var text = 'Proxima';
-    var self = this;
-    
-    Utils.clear(this.footer);
-    
-    if( this.questions.length === 1 || this.questions.length === (this.currentQuestion + 1)) {
-        text = 'Finalizar';
-    }
-
-    this.button  = document.createElement('button');
-    this.button.appendChild(document.createTextNode(text));
-    this.footer.appendChild( this.button ); 
-    this.button.onclick = function(){ self.checkAnswer(); };
-};
-
-Quiz.prototype.showQuestion = function(){
-    var question = this.questions[this.currentQuestion].question;
-    this.setHeader(question);
-    this.showChoices();
-    this.setFooter();
-};
-
-Quiz.prototype.showChoices = function(){
-    Utils.clear(this.listQuestions);
-    
-    var choices = this.questions[this.currentQuestion].choices;
-    var li, text, self = this;
-
-    var onClickChoice =  function(elt){
-        return function(){
-            self.iChoice(elt);
-        };
-    };
-
-    for(i = 0, len = choices.length; i < len; i++ ) {
-        li   = document.createElement('li');
-        text = document.createTextNode( choices[i]);
-        li.appendChild(text);
-        this.listQuestions.appendChild(li);
-
-        li.onclick = onClickChoice(li);
-    }
-};
-
-Quiz.prototype.iChoice = function(elt){
-    var choices = this.listQuestions.childNodes;
-    for(i = 0, len = choices.length; i < len; i++ ) {
-        Utils.removeClass('quizSelected', choices[i]);
-        if( choices[i] === elt) {
-            Utils.addClass('quizSelected', choices[i]);
-            this.myChoice = i;
-        }
-    }
-};
-
-Quiz.prototype.checkAnswer = function(){
-    var answerRight = this.questions[this.currentQuestion].answer;
-    var choices     = this.listQuestions.childNodes;
-    var self = this;
-
-    if( this.myChoice === null || this.myChoice < 0)  return false;
-
-    this.button.onclick = '';
-    if(answerRight === this.myChoice) {
-        Utils.removeClass('quizSelected', choices[answerRight]);
-        Utils.addClass('quizRight', choices[answerRight]);
-        this.rightChoices.set();
-    } else {
-        Utils.removeClass('quizSelected', choices[this.myChoice ]);
-        Utils.addClass('quizWrong', choices[this.myChoice ]);
-
-        Utils.addClass('quizRight', choices[answerRight]);
-    }
-    this.myChoice = null;
-    setTimeout(function(){
-        if( (self.questions.length - 1) === self.currentQuestion ) {
-            self.endGame();
-        } else {
-            self.currentQuestion++;
-            self.showQuestion();
-        }
-
-    },1000);
-};
-
-Quiz.prototype.endGame = function(){
-
-    var message, button;
-    var oks  = this.rightChoices.get();
-    var questions = this.questions.length;
-    var text = 'Você Perdeu';  
-    var self = this;
-
-    Utils.clear(this.footer);
-
-    if( oks >= (questions/2) )
-        text = 'Você Ganhou';
-        
-
-    text += ' Score: ' + oks + '/' + questions;
-
-    message = document.createElement('p');
-    message.appendChild( document.createTextNode(text) );
-
-    button = document.createElement('button');
-    button.appendChild( document.createTextNode('Joga Novamente!') );
-
-    
-    button.onclick = function(){
-        self.init();
-    };
-
-    this.footer.appendChild(message);
-    this.footer.appendChild(button);
-
-};
-
-Utils = {};
-Utils.removeClass = function(c, e) {
-    if (c.length === 0 || c.indexOf(" ") != -1) return;
-    var pattern = new RegExp("\\b" + c + "\\b\\s*", "g");
-    e.className = e.className.replace(pattern, "");
-};
-
-Utils.containsClass = function(c, e) {
-    if (c.length === 0 || c.indexOf(" ") != -1) return;
-    var classes = e.className;
-    if (!classes) return false;
-    if (classes === c) return true;
-    return classes.search("\\b" + c + "\\b") != -1;
-};
-
-Utils.addClass = function(c, e) {
-    if (this.containsClass(c, e)) return;
-    var classes = e.className;
-    if (classes && classes[classes.length-1] != " ")
-        c = " " + c;
-
-    e.className += c;
-};
-
-Utils.clear = function(elt) {
-    for(;elt.firstChild;) { elt.removeChild(elt.firstChild); }
+window.onload = function () {
+    q = new Quiz('arena', questions);
 };
