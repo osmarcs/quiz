@@ -228,6 +228,7 @@ Quiz = (function(){
         if( this.actual === (this.questions.length-1))
             return true;
     };    
+    
     Quiz.prototype.isTheFirst = function(){
         if( this.actual === 0)
             return true;
