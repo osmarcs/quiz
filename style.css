@@ -63,7 +63,7 @@
     -webkit-transition: all .1s;
     -moz-transition: all .1s;
 }
-.quizFooter::after{
+.quizFooter:after{
     content: "";
     clear: both;
     display: table;

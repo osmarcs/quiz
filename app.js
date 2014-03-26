@@ -154,9 +154,10 @@ Quiz = (function(){
 
         buttons = this.footer.getElementsByTagName('button');
         
-        // Revison
-        callDirection = function() {
-            var direction = Utils.getData(this, 'direction');
+        callDirection = function(evt) {
+            // IE8 ealier attach this = window;
+            var target = Utils.getTarget(evt);
+            var direction = Utils.getData(target, 'direction');
             self.onClickDirectionBtn(direction);
         };
 
@@ -275,7 +276,6 @@ Quiz = (function(){
     };
 
     Utils.getData = function(elt, name) {
-
         if(elt.dataset)
             return elt.dataset[name];
         else 
@@ -283,7 +283,9 @@ Quiz = (function(){
     };
 
     Utils.getTarget = function(evt) {
-        return evt ? evt.target : window.event.srcElement;
+        // IE Attach return event object no-standard
+        evt = evt || window.event;
+        return evt.target ? evt.target : evt.srcElement;
     };
     
     Utils.clear = function(elt) {
