@@ -39,7 +39,11 @@ Quiz = (function(){
         this.container = container;
         this.answers   = [];
         this.actual    = 0;
-        this.showSplash();
+
+        if( this.isLogged() )
+            this.showSplash();
+        else
+            this.showLogin();
     };
 
     Quiz.prototype.showSplash = function(){
@@ -54,9 +58,63 @@ Quiz = (function(){
 
         this.container.innerHTML = htmlContainer;
 
-        this.footer.innerHTML = '<button class="quizSplashBtn">Começar Agora!</button>';
+        this.footer.innerHTML = '<button class="quizBtnGreen pullRight">Começar Agora!</button>';
         button = this.footer.getElementsByTagName('button')[0];
         Utils.addEvent(button, 'click', function(){ self.showAsk(); });
+
+    };    
+
+    Quiz.prototype.isLogged = function(){
+        var nome = sessionStorage.getItem('nome');
+        if(nome) return true;
+    };
+
+    Quiz.prototype.showLogin = function(){
+
+        var name, htmlFooter, htmlContainer, htmlChangeLogin, 
+            button, buttonChange, novoLogin;
+        var self = this;
+        name = localStorage.getItem('nome') || 'Visitante';
+        
+        this.header.innerHTML = "<h2>Olá, " + name  +"</h2>";
+        htmlContainer = '<div class="quizLogin">';
+        htmlContainer += '<p>' + name +', não é você?</p>';
+        htmlContainer += '<button class="quizBtnBlue">Trocar</button>';
+        htmlContainer += '<div class="quizLoginChange"><p>Digite seu nick de usuário!</p>';
+        htmlContainer += '<input name="nome" placeholder="nick"></div>';
+        htmlContainer += "</div>";
+
+        this.container.innerHTML = htmlContainer;
+
+        buttonChange = this.container.getElementsByTagName('button')[0];
+        novoLogin    = this.container.getElementsByTagName('div')[1];
+        Utils.addEvent(buttonChange, 'click', function(){ 
+            novoLogin.style.display = "block";
+        });
+
+        this.footer.innerHTML = '<button class="quizBtnGreen pullRight">Entrar!</button>';
+        button = this.footer.getElementsByTagName('button')[0];
+        Utils.addEvent(button, 'click', function(){ self.validLogin(); });
+
+    };
+
+    Quiz.prototype.validLogin = function(){
+        var nameLocal, newName;
+
+        nameLocal = localStorage.getItem('nome');
+        newName   = this.container.getElementsByTagName('input')[0].value;
+        
+        if( !nameLocal && !newName )
+            return false;
+        
+        if(newName) {
+            localStorage.setItem('nome', newName);
+            sessionStorage.setItem('nome', newName);
+        } else {
+            sessionStorage.setItem('nome', nameLocal);
+        }
+
+        this.showSplash();
 
     };
 
@@ -142,11 +200,11 @@ Quiz = (function(){
         var buttons, nextBtn, callDirection,
              prevBtn = '', self = this;
 
-        nextBtn = '<button class="quizNextBtn" data-direction="next">';
+        nextBtn = '<button class="quizBtnGreen pullRight" data-direction="next">';
         nextBtn += (this.isTheLast()) ? 'Finalizar' : 'Próxima';
 
         if( !this.isTheFirst() ){
-            prevBtn = '<button class="quizPrevBtn" data-direction="back">Voltar!';
+            prevBtn = '<button class="quizBtnRed pullLeft" data-direction="back">Voltar!';
             prevBtn += '</button>';
         }
 
@@ -190,9 +248,10 @@ Quiz = (function(){
 
     Quiz.prototype.endGame = function() {
         var questions, answers, numQuestions,
-            containerHtml, button, 
+            containerHtml, button, name,  
             self = this, rigthAnswers = 0;
 
+        name = localStorage.getItem('nome');
         numQuestions = this.questions.length;
         questions    = this.questions;
         answers      = this.answers;
@@ -205,11 +264,11 @@ Quiz = (function(){
 
         if( rigthAnswers >= (numQuestions/2) ) {
             containerHtml = '<p class="quizEndWin">';
-            containerHtml += 'Parabéns você é o grande ganhador da noite!';
+            containerHtml += 'Parabéns ' + name + ' é o grande ganhador da noite!';
             containerHtml += '</p>';
         } else {
             containerHtml = '<p class="quizEndLose">';
-            containerHtml += 'Oh não, você perdeu, que tal tentar de novo?';
+            containerHtml += 'Oh não,  ' + name + ' perdeu, que tal tentar de novo?';
             containerHtml += '</p>';
         }
 
@@ -218,7 +277,7 @@ Quiz = (function(){
 
         this.container.innerHTML = containerHtml;
 
-        this.footer.innerHTML = '<button class="quizPlayAgain">Jogar Novamente !</button>';
+        this.footer.innerHTML = '<button class="quizBtnGreen pullRight">Jogar Novamente !</button>';
 
         button  = this.footer.getElementsByTagName('button')[0];
         Utils.addEvent(button, 'click', function(){ self.init(); });
@@ -228,7 +287,7 @@ Quiz = (function(){
         if( this.actual === (this.questions.length-1))
             return true;
     };    
-    
+
     Quiz.prototype.isTheFirst = function(){
         if( this.actual === 0)
             return true;
