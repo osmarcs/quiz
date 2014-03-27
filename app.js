@@ -17,22 +17,26 @@ Quiz = (function(){
 
     Quiz.prototype.init = function() {
 
-        var header, footer, container;
+        var fragment, header, footer, container;
 
         this.stage.innerHTML = '';
 
+        fragment = document.createDocumentFragment();
+ 
         header = document.createElement('div');
         header.className = 'quizHeader';
-
-        footer = document.createElement('div');
-        footer.className = 'quizFooter'; 
-
+ 
         container = document.createElement('div');
-        container.className = 'quizContainer'; 
-
-        this.stage.appendChild(header);
-        this.stage.appendChild(container);
-        this.stage.appendChild(footer);
+        container.className = 'quizContainer';
+     
+        footer = document.createElement('div');
+        footer.className = 'quizFooter';
+     
+        fragment.appendChild(header);
+        fragment.appendChild(container);
+        fragment.appendChild(footer);
+ 
+        this.stage.appendChild(fragment); // Only one DOM access directly. Performance++.
 
         this.header    = header;
         this.footer    = footer;
