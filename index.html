@@ -3,13 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <title>Quiz Dinamico 2</title>
-    <link href='http://fonts.googleapis.com/css?family=Lemon' rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=Roboto+Condensed:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="root">
-        <div id="arena"></div>
+        <div class="panel panel-primary text-center" id="arena"></div>
     </div>
+  
+    <script src="http://builds.handlebarsjs.com.s3.amazonaws.com/handlebars-v1.3.0.js"></script>
+    <script>
+      Handlebars.registerHelper('ifEqual', function(lvalue, rvalue, options){
+          if(lvalue === rvalue) {
+            return options.fn(this);
+          }
+      });
+
+    </script>
+    <script id="header-tpl" type="x-handlebars-template">
+       <h2>{{ title }}</h2>
+    </script>
+    <script id="footer-tpl" type="x-handlebars-template">
+       {{#if buttonLeft}}
+         <button class="btn btn-danger pull-left" data-direction="prev">
+             {{buttonLeft}}
+         </button>
+       {{/if}}
+
+       {{#if buttonRight}}
+         <button class="btn btn-success pull-right" data-direction="next">
+             {{buttonRight}}
+         </button>
+       {{/if}}
+    </script>
+    <script id="splash-tpl" type="x-handlebars-template">
+       <p class="text-red pSplashFirst">
+           Teste aqui seus conhecimento sobre futebol americano.
+       </p>
+       <p class="text-primary">
+           Jogue, apreenda e se divirta com esse super quiz.
+       </p>
+    </script>
+
+    <script id="login-tpl" type="x-handlebars-template">
+       <div class="quizLogin">
+         {{#if hasLogin}}
+             <p class="text-red">{{name}}, não é você?</p>
+             <button class="btn btn-primary">Trocar</button>
+         {{/if }}
+         <div class="quizLoginChange text-success {{#if hasLogin}}invisible{{/if}}">
+           <p>Digite seu nick de usuário!</p>
+           <input name="nome" placeholder="nick">
+         </div>
+       </div>
+    </script>
+  
+    <script type="text/x-handlebars-template" id="choices-tpl">
+        <ul class="list-group"> 
+          {{#each choices}}
+              <li class="list-group-item {{#ifEqual @index ../actualAnswer}}list-group-item-warning{{/ifEqual}}"  data-index="{{@index}}" >
+                {{ this }}
+              </li>
+          {{/each}}
+        </ul>
+    </script>
+    <script type="text/x-handlebars-template" id="endGame-tpl">
+        
+        {{#if win}}
+            <p class="quizEndText text-success">
+              Parabéns {{name}} é o grande ganhador da noite!
+            </p>
+        {{else}}
+            <p class="quizEndText text-red">
+              Oh não, {{name}} perdeu, que tal tentar de novo?
+            </p>
+        {{/if}}
+        <p class="quizScore text-red">
+          Score: {{rightAnswers}} / {{numQuestions}}
+        </p>
+
+        <div class="quiz-ranking bg-info">
+            <h3 class="text-success"> Super ranking </h3>
+            <ol class="list-group"> 
+              {{#each ranking}}
+                  <li class="list-group-item bg-info">
+                      {{nick}} - {{points}}
+                  </li>
+              {{/each}}
+            </ol>
+        </div>
+    </script>
     <script src="app.js"></script>
+  
 </body>
 </html>
